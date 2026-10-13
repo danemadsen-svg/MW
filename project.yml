@@ -9,12 +9,17 @@ settings:
     SWIFT_VERSION: "5.10"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
+packages:
+  WardrobeCore:
+    path: Packages/WardrobeCore
 targets:
   Wardrobe:
     type: application
     platform: iOS
     sources:
       - Wardrobe
+    dependencies:
+      - package: WardrobeCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.danemadsen.wardrobe
@@ -28,3 +33,30 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
         CODE_SIGN_STYLE: Automatic
+  WardrobeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - WardrobeTests
+    dependencies:
+      - target: Wardrobe
+      # Already linked into the host app; linking it again would duplicate its symbols.
+      - package: WardrobeCore
+        link: false
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.danemadsen.wardrobe.tests
+schemes:
+  Wardrobe:
+    build:
+      targets:
+        Wardrobe: all
+        WardrobeTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - WardrobeTests
+        - package: WardrobeCore/WardrobeCoreTests
