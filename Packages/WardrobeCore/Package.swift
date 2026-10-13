@@ -8,7 +8,10 @@ let package = Package(
         .library(name: "WardrobeCore", targets: ["WardrobeCore"]),
     ],
     targets: [
-        .target(name: "WardrobeCore"),
+        .target(
+            name: "WardrobeCore",
+            resources: [.copy("Resources/color-dictionary.json")]
+        ),
         .testTarget(name: "WardrobeCoreTests", dependencies: ["WardrobeCore"]),
     ]
 )
