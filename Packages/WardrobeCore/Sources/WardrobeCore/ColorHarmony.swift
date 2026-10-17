@@ -8,7 +8,7 @@ public enum ColorRole: Hashable, Sendable {
 public struct HarmonyPolicy: Hashable, Sendable {
     /// Colors with chroma (C*ab) below this are greys, black, white or off-whites: neutral.
     public var neutralChroma: Double = 12
-    /// Also treat navy, denim and earth tones (camel, khaki, tan, brown, olive) as neutral.
+    /// Also treat navy, denim and earth tones (camel, khaki, tan, brown, olive, sage) as neutral.
     /// The book has no notion of fashion neutrals; without this almost no everyday outfit passes.
     public var fashionNeutrals: Bool = true
     /// Maximum CIEDE2000 distance for an item color to stand in for a dictionary color.
@@ -31,7 +31,7 @@ public struct HarmonyPolicy: Hashable, Sendable {
         let hue = lab.hueDegrees
         let isNavy = lab.l < 35 && (220..<300).contains(hue) && chroma < 45
         let isDenim = (25..<65).contains(lab.l) && (220..<290).contains(hue) && chroma < 35
-        let isEarth = (40..<120).contains(hue) && chroma < 35
+        let isEarth = (40..<130).contains(hue) && chroma < 40
         return isNavy || isDenim || isEarth ? .neutral : .accent
     }
 }

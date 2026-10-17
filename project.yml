@@ -12,12 +12,18 @@ settings:
 packages:
   WardrobeCore:
     path: Packages/WardrobeCore
+fileGroups:
+  - Wardrobe/Resources/Wardrobe.storekit
+  - docs
 targets:
   Wardrobe:
     type: application
     platform: iOS
     sources:
-      - Wardrobe
+      - path: Wardrobe
+        # Test-only StoreKit configuration; referenced by the scheme, not shipped in the app.
+        excludes:
+          - "**/*.storekit"
     dependencies:
       - package: WardrobeCore
     settings:
@@ -29,6 +35,8 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: Take photos of your clothes and accessories to add them to your closet. Photos stay on this iPhone.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
@@ -55,6 +63,7 @@ schemes:
         WardrobeTests: [test]
     run:
       config: Debug
+      storeKitConfiguration: Wardrobe/Resources/Wardrobe.storekit
     test:
       config: Debug
       targets:
