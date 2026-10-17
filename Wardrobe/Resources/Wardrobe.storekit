@@ -1,0 +1,38 @@
+{
+  "identifier" : "7C2B4E1A",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : true,
+      "internalID" : "6754312890",
+      "localizations" : [
+        {
+          "description" : "Unlimited closet, your avatar and try-on previews. One-time purchase.",
+          "displayName" : "Wardrobe Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.danemadsen.wardrobe.lifetime",
+      "referenceName" : "Wardrobe Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
