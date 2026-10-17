@@ -31,6 +31,16 @@ struct AcknowledgementsView: View {
 
     var body: some View {
         List {
+            Section {
+                Text("The optional on-device image model is Apple's Core ML conversion of Stable Diffusion 1.5 (Robin Rombach, Patrick Esser and contributors), downloaded unmodified from Hugging Face. It is licensed under the CreativeML Open RAIL-M, including its use-based restrictions.")
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                NavigationLink("CreativeML Open RAIL-M") { ModelLicenseView() }
+                    .foregroundStyle(Theme.Palette.textPrimary)
+            } header: {
+                Text("Image model")
+            }
+            .listRowBackground(Theme.Palette.surface)
+
             ForEach(notices) { notice in
                 Section {
                     Text(notice.detail)

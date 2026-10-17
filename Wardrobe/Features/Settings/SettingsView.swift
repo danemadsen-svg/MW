@@ -5,6 +5,7 @@ import WardrobeCore
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(PurchaseManager.self) private var purchases
+    @Environment(ModelStore.self) private var modelStore
     @Query private var items: [Item]
     @Query private var outfits: [Outfit]
 
@@ -78,6 +79,16 @@ struct SettingsView: View {
     private var renderingSection: some View {
         let tier = DeviceCapability.currentTier(for: profile)
         return Section {
+            NavigationLink("Your Avatar") { AvatarView() }
+                .foregroundStyle(Theme.Palette.textPrimary)
+            if tier != .sketchOnly {
+                NavigationLink {
+                    ModelDownloadView()
+                } label: {
+                    LabeledContent("Image Model", value: modelStore.state == .installed ? "Installed" : "Not installed")
+                }
+                .foregroundStyle(Theme.Palette.textPrimary)
+            }
             LabeledContent("Previews", value: tier.title)
                 .foregroundStyle(Theme.Palette.textPrimary)
             if tier < DeviceCapability.hardwareTier(for: profile) {
@@ -151,5 +162,6 @@ struct SettingsView: View {
     NavigationStack { SettingsView() }
         .modelContainer(try! Persistence.makeContainer(inMemory: true))
         .environment(PurchaseManager())
+        .environment(ModelStore())
         .preferredColorScheme(.dark)
 }

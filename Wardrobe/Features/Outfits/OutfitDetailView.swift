@@ -46,6 +46,17 @@ struct OutfitDetailView: View {
             }
             .listRowBackground(Theme.Palette.surface)
 
+            Section {
+                NavigationLink {
+                    TryOnView(outfit: outfit)
+                } label: {
+                    Label("Try On", systemImage: "sparkles.rectangle.stack")
+                }
+            } footer: {
+                Text("See this outfit on your avatar, rendered on this iPhone.")
+            }
+            .listRowBackground(Theme.Palette.surface)
+
             Section("Pieces") {
                 if items.isEmpty {
                     Text("This outfit's pieces are no longer in your closet.")

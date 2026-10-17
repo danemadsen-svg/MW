@@ -1,10 +1,12 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 @main
 struct WardrobeApp: App {
     private let container: Result<ModelContainer, any Error>
     @State private var purchases = PurchaseManager()
+    @State private var modelStore = ModelStore()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     init() {
@@ -20,6 +22,10 @@ struct WardrobeApp: App {
                     RootView()
                         .modelContainer(container)
                         .environment(purchases)
+                        .environment(modelStore)
+                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+                            DiffusionEngine.shared.unload()
+                        }
                         .task { purchases.start() }
                         .task {
                             // Suggest tags for photos the current auto-tagger hasn't seen yet.

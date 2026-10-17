@@ -190,7 +190,7 @@ enum SchemaV1: VersionedSchema {
     final class TryOnRender {
         @Attribute(.unique) var id: UUID
         var createdAt: Date
-        /// `RenderKind.rawValue`: "sketch" or "diffusion".
+        /// `RenderKind.rawValue`: "sketch", "composite" or "diffusion".
         var kindRaw: String
         @Attribute(.externalStorage) var imageData: Data
         var seed: Int?
@@ -302,7 +302,9 @@ extension SchemaV1.Outfit {
 enum RenderKind: String, Sendable {
     /// Flat-lay lookbook composed from item photos; works on every device.
     case sketch
-    /// Generated on device with a diffusion model.
+    /// Item cut-outs placed on the avatar's body, without diffusion; works on every device.
+    case composite
+    /// Composite blended on device with a diffusion model.
     case diffusion
 }
 

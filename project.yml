@@ -12,6 +12,12 @@ settings:
 packages:
   WardrobeCore:
     path: Packages/WardrobeCore
+  StableDiffusion:
+    url: https://github.com/apple/ml-stable-diffusion
+    from: 1.1.1
+  ZIPFoundation:
+    url: https://github.com/weichsel/ZIPFoundation
+    from: 0.9.20
 fileGroups:
   - Wardrobe/Resources/Wardrobe.storekit
   - docs
@@ -26,6 +32,14 @@ targets:
           - "**/*.storekit"
     dependencies:
       - package: WardrobeCore
+      - package: StableDiffusion
+        product: StableDiffusion
+      - package: ZIPFoundation
+    entitlements:
+      path: Wardrobe/Wardrobe.entitlements
+      properties:
+        # Image generation peaks above 2 GB; this raises the app's memory limit where the device allows.
+        com.apple.developer.kernel.increased-memory-limit: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.danemadsen.wardrobe
