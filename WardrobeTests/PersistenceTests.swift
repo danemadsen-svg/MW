@@ -132,4 +132,103 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(fetched.photoData, bytes)
         XCTAssertEqual(fetched.thumbnailData, Data([1, 2, 3]))
     }
+
+    func testTypedAccessorsRoundTrip() throws {
+        let item = Item(category: .clothing, clothingType: .layer, seasons: [.autumn, .winter], formality: .smartCasual)
+        context.insert(item)
+        try context.save()
+
+        let fetched = try XCTUnwrap(ModelContext(container).fetch(FetchDescriptor<Item>()).first)
+        XCTAssertEqual(fetched.clothingType, .layer)
+        XCTAssertEqual(fetched.seasons, [.autumn, .winter])
+        XCTAssertEqual(fetched.formality, .smartCasual)
+
+        fetched.clothingType = nil
+        fetched.formality = nil
+        fetched.seasons = []
+        XCTAssertNil(fetched.clothingTypeRaw)
+        XCTAssertNil(fetched.formalityRaw)
+        XCTAssertEqual(fetched.seasonsRaw, 0)
+    }
+
+    func testIncompleteRules() {
+        XCTAssertTrue(Item(category: .clothing, primaryColor: RGBColor(red: 1, green: 2, blue: 3)).isIncomplete, "clothing needs a type")
+        XCTAssertTrue(Item(category: .clothing, clothingType: .top).isIncomplete, "needs a color")
+        XCTAssertFalse(Item(category: .clothing, clothingType: .top, primaryColor: RGBColor(red: 1, green: 2, blue: 3)).isIncomplete)
+        XCTAssertFalse(Item(category: .watches).isIncomplete, "metals don't need a color")
+        XCTAssertFalse(Item(category: .cologne).isIncomplete)
+        XCTAssertTrue(Item(category: .hats).isIncomplete)
+    }
+
+    func testOutfitKeepsItemOrder() throws {
+        let shoes = Item(category: .shoes)
+        let top = Item(category: .clothing, clothingType: .top)
+        let bottom = Item(category: .clothing, clothingType: .bottom)
+        let outfit = Outfit(score: 0.9, paletteCombinationID: 12)
+        for item in [shoes, top, bottom] { context.insert(item) }
+        context.insert(outfit)
+        outfit.setItems([top, bottom, shoes])
+        try context.save()
+
+        let fetched = try XCTUnwrap(ModelContext(container).fetch(FetchDescriptor<Outfit>()).first)
+        XCTAssertEqual(fetched.orderedItems.map(\.id), [top.id, bottom.id, shoes.id])
+        XCTAssertEqual(fetched.itemOrder, [top.id, bottom.id, shoes.id])
+        XCTAssertEqual(fetched.score, 0.9)
+        XCTAssertEqual(fetched.paletteCombinationID, 12)
+    }
+
+    func testDeletingOutfitDeletesItsRendersButNotItems() throws {
+        let item = Item(category: .shoes)
+        let outfit = Outfit()
+        let render = TryOnRender(kindRaw: RenderKind.sketch.rawValue, imageData: Data([9]))
+        context.insert(item)
+        context.insert(outfit)
+        context.insert(render)
+        outfit.setItems([item])
+        render.outfit = outfit
+        try context.save()
+        XCTAssertEqual(outfit.renders.count, 1)
+
+        context.delete(outfit)
+        try context.save()
+
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<TryOnRender>()), 0)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<Item>()), 1)
+    }
+
+    func testDeletingAvatarProfileDeletesReferences() throws {
+        let profile = AvatarProfile(seed: 42)
+        let front = AvatarReference(poseRaw: AvatarPose.front.rawValue, imageData: Data([1]))
+        let side = AvatarReference(poseRaw: AvatarPose.leftProfile.rawValue, imageData: Data([2]))
+        context.insert(profile)
+        context.insert(front)
+        context.insert(side)
+        front.profile = profile
+        side.profile = profile
+        try context.save()
+        XCTAssertEqual(profile.references.count, 2)
+
+        context.delete(profile)
+        try context.save()
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<AvatarReference>()), 0)
+    }
+
+    func testOutfitCandidateSnapshot() throws {
+        let navy = RGBColor(red: 0x1F, green: 0x2A, blue: 0x44)
+        let item = Item(category: .clothing, clothingType: .bottom, primaryColor: navy, seasons: [.winter], formality: .business)
+        let outfit = Outfit()
+        context.insert(item)
+        context.insert(outfit)
+        outfit.setItems([item])
+        try context.save()
+
+        let candidate = item.outfitCandidate
+        XCTAssertEqual(candidate.id, item.id)
+        XCTAssertEqual(candidate.clothingType, .bottom)
+        XCTAssertEqual(candidate.colors, [navy])
+        XCTAssertEqual(candidate.seasons, [.winter])
+        XCTAssertEqual(candidate.formality, .business)
+        XCTAssertEqual(candidate.usageCount, 1)
+        XCTAssertEqual(item.displayName, "Bottom")
+    }
 }
