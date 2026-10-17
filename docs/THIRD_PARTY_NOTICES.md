@@ -34,3 +34,20 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
 See `docs/LICENSING.md` for the analysis of the underlying book's status.
+
+## ml-stable-diffusion
+
+[apple/ml-stable-diffusion](https://github.com/apple/ml-stable-diffusion), the Swift package that runs the on-device image model. MIT License, Copyright (c) 2024 Apple Inc. (same terms as above).
+
+## ZIPFoundation
+
+[weichsel/ZIPFoundation](https://github.com/weichsel/ZIPFoundation), used to unpack the model download. MIT License, Copyright (c) 2017-2026 Thomas Zoechling (same terms as above).
+
+## Stable Diffusion 1.5 (downloaded, not bundled)
+
+The optional image model is Apple's Core ML conversion of Stable Diffusion 1.5
+([apple/coreml-stable-diffusion-v1-5-palettized](https://huggingface.co/apple/coreml-stable-diffusion-v1-5-palettized)),
+which the user downloads after accepting its license in the app. It is licensed under the CreativeML Open RAIL-M
+(Copyright (c) 2022 Robin Rombach and Patrick Esser and contributors). The full text ships at
+`Wardrobe/Resources/Licenses/CreativeML-OpenRAIL-M.txt`, and its use-based restrictions are part of the app's EULA
+(`docs/EULA.md`).

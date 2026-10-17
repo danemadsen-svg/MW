@@ -1,16 +1,12 @@
 # Wardrobe
 
-A personal wardrobe catalog and AI outfit generator for iPhone. Everything (catalog, color engine, and later the avatar and try-on models) runs on the device, with no backend or cloud inference.
+A personal wardrobe catalog and outfit generator for iPhone, sold for a one-time fee. Everything runs on the device: the catalog, the color engine, auto-tagging, and the avatar and try-on renders. There's no backend and no cloud inference.
 
-See [`docs/BUILD.md`](docs/BUILD.md) for the full build doc and chapter plan.
-
-## Stack
-
-- SwiftUI, iPhone only, iOS 17+
-- Xcode project generated from [`project.yml`](project.yml) with [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- SwiftData for on-device storage (`Wardrobe/Persistence`). The store is local only, with CloudKit sync explicitly disabled
-- `WardrobeCore`, a local Swift package for platform-independent domain logic (categories, colors, later the color engine). It builds and tests on macOS and Linux without the iOS SDK
-- Dark-only theme. Design tokens are in `Wardrobe/Theme/Theme.swift`, and UIKit bar styling is in `Wardrobe/Theme/Appearance.swift`
+- [`docs/BUILD.md`](docs/BUILD.md): product build doc and chapter plan
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): layers, conventions, cross-feature contracts
+- [`docs/LICENSING.md`](docs/LICENSING.md): model and data licensing decisions (read before launch)
+- [`docs/APP_STORE.md`](docs/APP_STORE.md): listing, privacy label, review notes, submission checklist
+- [`docs/EULA.md`](docs/EULA.md), [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md), [`docs/THIRD_PARTY_NOTICES.md`](docs/THIRD_PARTY_NOTICES.md)
 
 ## Getting started
 
@@ -20,42 +16,64 @@ xcodegen generate
 open Wardrobe.xcodeproj
 ```
 
-Choose your signing team under *Signing & Capabilities*, then run on a simulator or device. The generated `Wardrobe.xcodeproj` is git-ignored: `project.yml` is the source of truth, so re-run `xcodegen generate` after adding or moving files.
+1. In *Signing & Capabilities*, choose your team. The Increased Memory Limit capability comes from `Wardrobe/Wardrobe.entitlements`.
+2. Run on a simulator for the catalog and outfits, or on a device for the camera, Vision and image generation. The simulator has no Neural Engine, so it uses sketch previews.
+3. The scheme uses `Wardrobe/Resources/Wardrobe.storekit`, so the Lifetime purchase works locally without App Store Connect.
+
+`project.yml` is the source of truth, and the generated `Wardrobe.xcodeproj` is git-ignored. Re-run `xcodegen generate` after adding or moving files. Swift packages (apple/ml-stable-diffusion, ZIPFoundation) resolve on first open.
 
 ## Tests
 
-- **Everything:** ⌘U in Xcode runs `WardrobeTests` (SwiftData persistence, needs the iOS simulator) and `WardrobeCoreTests`
-- **Core only:** `swift test --package-path Packages/WardrobeCore`, which runs anywhere Swift does, Linux included
+- **Everything:** ⌘U in Xcode runs `WardrobeTests` (persistence, closet logic, outfit saving, auto-tag review) and `WardrobeCoreTests`
+- **Core only:** `swift test --package-path Packages/WardrobeCore`. It runs anywhere Swift does, Linux included; 89 tests
 
-## Data model
+## Status
 
-`Wardrobe/Persistence/SchemaV1.swift` defines two models:
+All six chapters are implemented. The pure logic in `WardrobeCore` is compiled and tested. **The app layer (SwiftUI, SwiftData, Vision, StoreKit, Core ML) was written without access to Xcode or the iOS SDK.** Every file passes a Swift syntax parse and was reviewed against the iOS 17 APIs, but expect a round of compile fixes on the first Xcode build.
 
-- **`Item`:** name, category, primary and optional secondary color (packed `0xRRGGBB`, `nil` until tagged), notes, photo and thumbnail (external storage), and timestamps
-- **`Outfit`:** name, favorite flag, creation date, and a many-to-many `items` relationship. Deleting an item drops it from its outfits, and deleting an outfit keeps its items
+| Chapter | What's there |
+|---|---|
+| 1 Catalog | Closet grid, search, category and color filters, add flow (camera, library or no photo), editor (category and clothing type, primary and secondary colors, seasons, formality, notes), item detail, edit and delete |
+| 2 Color engine | 159 colors and 348 combinations from *A Dictionary of Color Combinations*. Garment colors are mapped to the book with CIEDE2000, accent pairs must be sanctioned by the book, and fashion neutrals go with anything. Wearability rules cover season, formality, one hat max and accessory limits. Generator UI, saved and favorite outfits |
+| 3 Auto-tagging | Vision's built-in classifier (no bundled model) maps to categories. Item-only dominant colors use a foreground mask and k-means in Lab. A confirm-or-correct banner, background re-tagging, and a review queue |
+| 4 Avatar | Consent-gated photo capture and a one-time, license-gated download of Apple's Core ML SD 1.5. The person is cut out, cleaned up with image-to-image, and the original face is kept exactly |
+| 5 Try-on | Vision body pose places garment cut-outs on the avatar, then on-device diffusion blends them. Progress and cancel, save and share, a quick-preview fallback and a flat-lay sketch for every device |
+| 6 Ship | Device tiers (memory, Neural Engine, Low Power Mode, thermal state), a StoreKit 2 one-time unlock with on-device verification, onboarding, privacy manifest, app icon, and App Store documents |
 
-Enums are stored as raw strings so they work in `#Predicate`. Typed accessors (`item.category`, `item.primaryColor`) wrap them. Until the first App Store release, `SchemaV1` may be edited in place. After that, freeze it and add a new `VersionedSchema` plus a migration stage.
+### Business rules (easy to change)
+
+- Free tier: 25 items (`PurchaseManager.freeItemLimit`), unlimited outfit generation and sketch previews
+- Lifetime unlock (`com.danemadsen.wardrobe.lifetime`, $9.99 in the StoreKit config): unlimited items, avatar, try-on
+
+### Needs a person
+
+- **Xcode:** build, fix any compile errors, run the tests, and test on real devices (a 6 GB and an 8 GB iPhone, plus one without diffusion support)
+- **App Store Connect:** create the app record and the in-app purchase, then fill in the metadata from `docs/APP_STORE.md`
+- **Legal review** of the items marked ⚖️ in `docs/LICENSING.md`: the OpenRAIL-M pass-through EULA, US status of the color book's selection, and biometric and likeness law
+- **Hosting:** the privacy policy and support URLs
+- **Later:** convert FASHN VTON v1.5 (Apache-2.0) to Core ML for dedicated try-on (plan in `docs/LICENSING.md`)
 
 ## Layout
 
 ```
 Wardrobe/
-  App/          app entry point, tab shell, storage error screen
-  Persistence/  SwiftData schema, migration plan, container factory
-  Theme/        colors, spacing, typography, bar appearance
-  Features/     one folder per tab (Closet, Outfits, Insights, Settings)
-  Resources/    asset catalog
-WardrobeTests/  app unit tests (run in Xcode)
-Packages/
-  WardrobeCore/ platform-independent domain types and tests
+  App/            entry point, tab shell, storage error screen
+  Persistence/    SwiftData schema (SchemaV1), migration plan, model → Core snapshots
+  Services/       PhotoProcessor, VisionAutoTagger, BackgroundRetagger, SketchRenderer,
+                  PurchaseManager, DeviceProfileProvider
+    Generation/   ModelStore, DiffusionEngine, ImageCompositing, AvatarBuilder, TryOnRenderer
+  Shared/         display names, shared components
+  Features/       Closet, Outfits, Insights, Settings, Avatar, TryOn, Onboarding, Purchase
+  Theme/          design tokens, bar appearance
+  Resources/      assets, app icon, StoreKit config, privacy manifest, model license
+WardrobeTests/    app unit tests (run in Xcode)
+Packages/WardrobeCore/
+                  color dictionary data, CIEDE2000, harmony rules, outfit generator,
+                  dominant colors, label → category mapping, insights, sketch and body
+                  layouts, render prompts, model catalog, device tiers
+scripts/          make_app_icon.py
 ```
 
-## Progress
+## Web companion
 
-- [x] 1.1 Project scaffold, navigation shell, dark-mode theme
-- [x] 1.2 Local database schema
-- [ ] 1.3 Add-item flow
-- [ ] 1.4 Category picker
-- [ ] 1.5 Manual color tagging
-- [ ] 1.6 Browse, search, filter
-- [ ] 1.7 Edit and delete
+A browser version built from the same rules (same dataset and harmony thresholds, with data stored only in the browser) lives on Replit as a remix of the original "Modern Wardrobe App" prototype. It's useful for trying the color engine without a Mac.

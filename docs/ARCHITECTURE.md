@@ -9,13 +9,16 @@ Packages/WardrobeCore   Pure Swift domain logic. No UIKit/SwiftUI/SwiftData. Bui
   ItemCategory, ClothingType, SeasonSet, Season, Formality, RGBColor, LabColor (CIEDE2000)
   ColorDictionary (book data), ColorHarmony (rules), OutfitGenerator, DominantColorExtractor,
   CategoryClassifier (classifier labels → categories), InsightsAnalyzer, SketchLayout,
-  DeviceCapability (render tiers), GarmentSwatches, SeededGenerator
+  DeviceCapability (render tiers), GarmentSwatches, SeededGenerator, ImageModelCatalog,
+  BodyLayout (pose → garment regions), RenderPrompt
 
 Wardrobe/Persistence    SwiftData schema (SchemaV1), migration plan, container factory,
                         ModelMapping (models → Core value snapshots)
 Wardrobe/Services       Platform services: PhotoProcessor (ImageIO), AutoTagging (protocol) +
-                        VisionAutoTagger, SketchRenderer, PurchaseManager (StoreKit 2),
-                        DeviceProfileProvider, Generation/ (on-device diffusion)
+                        VisionAutoTagger, BackgroundRetagger (@ModelActor), SketchRenderer,
+                        PurchaseManager (StoreKit 2), DeviceProfileProvider
+  Generation/           ModelStore (one-time model download), DiffusionEngine (Core ML SD),
+                        ImageCompositing (Vision + Core Image), AvatarBuilder, TryOnRenderer
 Wardrobe/Shared         DisplayNames (all user-facing enum wording), Components (thumbnails,
                         swatches, chips, badges)
 Wardrobe/Features/*     One folder per area: Closet, Outfits, Insights, Settings, Avatar, TryOn,
@@ -32,7 +35,7 @@ Engines take Core value types (`OutfitCandidate`, `InsightItem`, `SketchLayout.P
 - **Wording:** every user-facing name for an enum comes from `Shared/DisplayNames.swift`.
 - **Styling:** use `Theme` tokens only, never ad-hoc colors. Scrolling screens use `.themedScreen()`, list rows use `.listRowBackground(Theme.Palette.surface)`, and empty states use `ContentUnavailableView`.
 - **Accessibility:** every icon-only button gets an `accessibilityLabel`, layouts stay readable with Dynamic Type, and color swatches always have a text name next to them or in their label.
-- **Privacy:** nothing leaves the device. No networking except the explicit, user-initiated model download in Chapter 4. Photos are re-encoded through `PhotoProcessor`, which strips metadata.
+- **Privacy:** nothing leaves the device. The only network access is the explicit, user-initiated model download in `ModelStore`. Photos are re-encoded through `PhotoProcessor`, which strips metadata.
 - **Heavy work** (image processing, generation, Vision) runs off the main actor.
 
 ## Data model (SchemaV1)
@@ -58,3 +61,6 @@ These are the types and entry points that features use to talk to each other. Ch
 | `enum SketchRenderer { static func render(pieces: [(SketchLayout.Piece, Data?)], size: CGSize) -> UIImage }` | Services/SketchRenderer.swift | Outfit detail, try-on fallback |
 | `struct ItemDetailView: View` with `init(item: Item)` | Features/Closet | Closet grid, Insights |
 | `DeviceProfileProvider.current() -> DeviceProfile` | Services/DeviceProfileProvider.swift | Avatar, TryOn, Settings |
+| `@MainActor @Observable final class ModelStore` with `state`, `resourcesURL`, `download()`, `cancel()`, `remove()`, injected via `.environment` | Services/Generation/ModelStore.swift | Avatar, TryOn, Settings, ModelDownloadView |
+| `DiffusionEngine.shared.generate(_:resourcesURL:reduceMemory:progress:)`, `cancel()`, `unload()` | Services/Generation/DiffusionEngine.swift | AvatarBuilder, TryOnRenderer |
+| `struct AvatarView: View` (init with no arguments), `struct TryOnView: View` with `init(outfit:)`, `struct ModelDownloadView: View` (no navigation stack) | Features/Avatar, Features/TryOn | Settings, outfit detail |
