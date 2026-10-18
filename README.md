@@ -6,6 +6,7 @@ A personal wardrobe catalog and outfit generator for iPhone, sold for a one-time
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): layers, conventions, cross-feature contracts
 - [`docs/LICENSING.md`](docs/LICENSING.md): model and data licensing decisions (read before launch)
 - [`docs/APP_STORE.md`](docs/APP_STORE.md): listing, privacy label, review notes, submission checklist
+- [`docs/DESIGN.md`](docs/DESIGN.md): Figma screens and components, FigJam system diagrams
 - [`docs/EULA.md`](docs/EULA.md), [`docs/PRIVACY_POLICY.md`](docs/PRIVACY_POLICY.md), [`docs/THIRD_PARTY_NOTICES.md`](docs/THIRD_PARTY_NOTICES.md)
 
 ## Getting started
