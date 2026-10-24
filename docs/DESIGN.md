@@ -12,10 +12,29 @@ One page, three sections:
 | Section | Contents |
 |---|---|
 | Icons | 50 icon components named `Icon/<SF Symbol name>`, one for each symbol the code uses |
-| Components | iOS chrome (status bar, home indicator, large and inline nav bars, tab bar) and app components: Chip, Color Swatch, Toggle, Button, Search Field, Banner, Item Tile, Closet Cell, List Row, Outfit Card |
+| Components | iOS chrome (status bar, home indicator, large and inline nav bars, tab bar) and app components: Chip, Color Swatch, Toggle, Button, Search Field, Banner, Item Tile (Regular and Small sizes), Closet Cell, List Row, Outfit Card |
 | Screens | 12 iPhone screens (393 × 852): Onboarding, Closet, Item Editor, Item Detail, Outfit Generator, Outfit Detail, Insights, Paywall, Settings, Image Model, Avatar, Try-On |
 
-The `Wardrobe` variable collection mirrors `Wardrobe/Theme/Theme.swift`: `color/*` for `Theme.Palette`, `spacing/*` for `Theme.Spacing`, `radius/*` for `Theme.Radius`. Each variable's iOS code syntax is set to its Swift name (for example `Theme.Palette.accent`), so Dev Mode shows the token to use. Text styles follow the Dynamic Type sizes at the default (Large) setting.
+The `Wardrobe` variable collection mirrors `Wardrobe/Theme/Theme.swift`: `color/*` for `Theme.Palette`, `spacing/*` for `Theme.Spacing`, `radius/*` for `Theme.Radius`. Each variable's iOS code syntax is set to its Swift name (for example `Theme.Palette.accent`), so Dev Mode shows the token to use. One extra token, `color/accent-tint`, is the background of `.bordered` buttons (accent at 16% over the surface color). Text styles follow the Dynamic Type sizes at the default (Large) setting.
+
+### What each screen shows
+
+Each screen is drawn from its SwiftUI view, with that view's copy, section order and defaults. Screens that scroll are shown at the scroll position where their main content is visible.
+
+| Screen | View | State shown |
+|---|---|---|
+| Onboarding | `OnboardingView` | Second page, "Outfits from a century-old color book" |
+| Closet | `ClosetView` | 12 items, suggestion banner, category chips, one item that needs details |
+| Item Editor | `ItemEditorView` | New item from a photo. A confident suggestion has filled the empty fields: "From your photo: Top · Navy" |
+| Item Detail | `ItemDetailView` | Navy Oxford Shirt, pushed from Closet |
+| Outfit Generator | `OutfitsView` + `OutfitGeneratorView` | Default filters (current season, accessories up to 3, cologne on). Suggestions scored by the color rules: 80% for one accent, 70% for all neutrals |
+| Outfit Detail | `OutfitDetailView` | Flat-lay sketch at the exact `SketchLayout` slot positions, with the book palette for combination #12 |
+| Insights | `InsightsView` | Gaps, Needs details, Unused, Over-used, Suggested colors |
+| Paywall | `PaywallView` | Sheet, before purchase |
+| Settings | `SettingsView` | Free tier (18 of 25 items), full-quality rendering |
+| Image Model | `ModelDownloadView` | Downloading, 42%, after accepting the license |
+| Avatar | `AvatarView` | Avatar built with the image model |
+| Try-On | `TryOnView` | Rendering (step 12 of 25) over the last saved preview |
 
 ## Substitutions
 
